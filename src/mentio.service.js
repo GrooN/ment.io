@@ -2,6 +2,26 @@
 
 angular.module('mentio')
     .factory('mentioUtil', function ($window, $location, $anchorScroll, $timeout) {
+        var config = {};
+
+        config.usePopOverMention = false;
+        config.popoverOffset = 30;
+
+        function getSelectionCss(coordinates) {
+            var changes = { top: coordinates.top + 'px' };
+            if (config.usePopOverMention) {
+                changes = {
+                    bottom: ($window.innerHeight - coordinates.top + config.popoverOffset) + 'px'
+                };
+            }
+
+            return angular.extend({
+                left: coordinates.left + 'px',
+                position: 'absolute',
+                zIndex: 10000,
+                display: 'block'
+            }, changes);
+        }
 
         // public
         function popUnderMention (ctx, triggerCharSet, selectionEl, requireLeadingSpace) {
@@ -18,13 +38,7 @@ angular.module('mentio')
                 }
 
                 // Move the button into place.
-                selectionEl.css({
-                    top: coordinates.top + 'px',
-                    left: coordinates.left + 'px',
-                    position: 'absolute',
-                    zIndex: 10000,
-                    display: 'block'
-                });
+                selectionEl.css(getSelectionCss(coordinates));
 
                 $timeout(function(){
                     scrollIntoView(ctx, selectionEl);
@@ -174,7 +188,7 @@ angular.module('mentio')
         }
 
         // public
-        function replaceTriggerText (ctx, targetElement, path, offset, triggerCharSet, 
+        function replaceTriggerText (ctx, targetElement, path, offset, triggerCharSet,
                 text, requireLeadingSpace, hasTrailingSpace) {
             resetSelection(ctx, targetElement, path, offset);
 
@@ -297,7 +311,7 @@ angular.module('mentio')
         // public
         function getTriggerInfo (ctx, triggerCharSet, requireLeadingSpace, menuAlreadyActive, hasTrailingSpace) {
             /*jshint maxcomplexity:11 */
-            // yes this function needs refactoring 
+            // yes this function needs refactoring
             var selected, path, offset;
             if (selectedElementIsTextAreaOrInput(ctx)) {
                 selected = getDocument(ctx).activeElement;
@@ -442,7 +456,7 @@ angular.module('mentio')
                     obj = iframe;
                     iframe = null;
                 }
-            }            
+            }
             obj = element;
             iframe = ctx ? ctx.iframe : null;
             while(obj !== getDocument().body) {
@@ -457,7 +471,7 @@ angular.module('mentio')
                     obj = iframe;
                     iframe = null;
                 }
-            }            
+            }
          }
 
         function getTextAreaOrInputUnderlinePosition (ctx, element, position) {
@@ -547,15 +561,14 @@ angular.module('mentio')
 
         return {
             // public
+            config: config,
+
             popUnderMention: popUnderMention,
             replaceMacroText: replaceMacroText,
             replaceTriggerText: replaceTriggerText,
             getMacroMatch: getMacroMatch,
             getTriggerInfo: getTriggerInfo,
             selectElement: selectElement,
-
-
-
 
             // private: for unit testing only
             getTextAreaOrInputUnderlinePosition: getTextAreaOrInputUnderlinePosition,
